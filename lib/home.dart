@@ -56,6 +56,7 @@ class _HomePageState extends State<HomePage> {
         },
         tooltip: 'Take picture',
         child: const Icon(Icons.add),
+        backgroundColor: Color(0xFF6C63FF),
       ),
       backgroundColor: Colors.white,
     );
@@ -66,29 +67,46 @@ class _HomePageState extends State<HomePage> {
 
     if(photoKeys.length == 0) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/empty.png',
-              fit: BoxFit.contain,
-            ),
-            Text(
-              'It\'s a bit lonely here',
-              style: TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-            RaisedButton(
-              onPressed: () {
-                getNewImage();
-              },
-              child: Text(
-                'Take a photo'
-              ),
-            )
-          ],
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            Axis mainDirection;
+            if(orientation == Orientation.portrait) {
+              mainDirection = Axis.vertical;
+            }
+            else {
+              mainDirection = Axis.horizontal;
+            }
+            return Flex(
+              direction: mainDirection,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/empty.png',
+                  fit: BoxFit.contain,
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'It\'s a bit lonely here',
+                      style: TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    RaisedButton(
+                      onPressed: () {
+                        getNewImage();
+                      },
+                      child: Text(
+                        'Take a photo'
+                      ),
+                    )
+                  ],
+                ),
+              ],
+            );
+          }
         ),
       );
     }
