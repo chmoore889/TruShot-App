@@ -1,7 +1,9 @@
-import 'package:camera/camera.dart';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:trushot/camera.dart';
+import 'package:http/http.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:trushot/database.dart';
 
 class HomePage extends StatefulWidget {
@@ -50,16 +52,16 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          List<CameraDescription> cameras = await availableCameras();
-          
-          await Navigator.push(context, MaterialPageRoute(
-            builder: (context) {
-              return TakePictureScreen(
-                camera: cameras.first,
-                database: database,
-              );
-            }
-          ));
+          final ImagePicker picker = ImagePicker();
+          final PickedFile pickedFile = await picker.getImage(source: ImageSource.camera);
+
+          if(pickedFile == null) {
+            return;
+          }
+
+          final Uint8List imageData = await pickedFile.readAsBytes();
+          await handleKeep(context, imageData);
+
           setState(() {
             photoKeysFuture = database.getPhotoKeys();
           });
@@ -117,5 +119,49 @@ class _HomePageState extends State<HomePage> {
         return null;
       },
     );
+  }
+
+  Future<void> handleKeep(BuildContext context, Uint8List image) async {
+    const String url = 'PLACEHOLDER';//TODO: Put correct link
+    
+    Response response;
+    try {
+      response = await post(url, body: image);
+    } catch(e) {
+      print(e);
+      await handleError(context);
+      return;
+    }
+
+    if(response?.statusCode != 200) {
+      await handleError(context);
+      return;
+    }
+    else {
+      await database.addPhotoKey(response.body);
+    }
+    
+    Navigator.popUntil(context, (route) => route.isFirst);
+  }
+
+  Future<void> handleError(BuildContext context) async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Oops!"),
+          content: Text("There was a problem handling your request."),
+          actions: [
+            FlatButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+    Navigator.popUntil(context, (route) => route.isFirst);
   }
 }
