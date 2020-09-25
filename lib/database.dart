@@ -1,0 +1,43 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
+class Database {
+  SharedPreferences prefs;
+  static const String dataKey = 'photoKeys';
+
+  /// Sets the SharedPreferences instance unless the 
+  /// instance is already non-null
+  Future<void> setPrefsInstance() async {
+    if(prefs == null) {
+      prefs = await SharedPreferences.getInstance();
+    }
+  }
+
+  Future<void> addPhotoKey(String photoKey) async {
+    await setPrefsInstance();
+
+    List<String> photoKeys;
+    try{
+      photoKeys = prefs.getStringList(dataKey);
+    }
+    catch(e) {
+      print(e);
+    }
+
+    photoKeys = photoKeys ?? List<String>()
+      ..add(photoKey);
+
+    await prefs.setStringList(dataKey, photoKeys);
+  }
+
+  List<String> getPhotoKeys() {
+    List<String> toReturn;
+    try{
+      toReturn = prefs.getStringList(dataKey);
+    }
+    catch(e) {
+      toReturn = List();
+      print(e);
+    }
+    return toReturn;
+  }
+}
