@@ -11,11 +11,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  camera: ^0.5.8+7
-  path_provider: ^1.6.18
-  path: ^1.7.0
+  image_picker: ^0.6.7+11
   shared_preferences: ^0.5.12
   http: ^0.12.2
+  photo_view: ^0.10.2
 
 dev_dependencies:
   flutter_test:

@@ -29,7 +29,9 @@ class Database {
     await prefs.setStringList(dataKey, photoKeys);
   }
 
-  List<String> getPhotoKeys() {
+  Future<List<String>> getPhotoKeys() async {
+    await setPrefsInstance();
+
     List<String> toReturn;
     try{
       toReturn = prefs.getStringList(dataKey);
