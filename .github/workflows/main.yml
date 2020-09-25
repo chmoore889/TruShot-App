@@ -28,3 +28,9 @@ jobs:
         channel: beta
     - run: flutter pub get
     - run: flutter build apk
+      
+    - name: Create a Release APK
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "build/app/outputs/flutter-apk/app-release.apk"
+        token: ${{ secrets.TOKEN }}
