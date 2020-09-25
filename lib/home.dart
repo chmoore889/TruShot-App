@@ -51,35 +51,45 @@ class _HomePageState extends State<HomePage> {
         }
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final ImagePicker picker = ImagePicker();
-          final PickedFile pickedFile = await picker.getImage(source: ImageSource.camera);
-
-          if(pickedFile == null) {
-            return;
-          }
-
-          final Uint8List imageData = await pickedFile.readAsBytes();
-          await handleKeep(context, imageData);
-
-          setState(() {
-            photoKeysFuture = database.getPhotoKeys();
-          });
+        onPressed: () {
+          getNewImage();
         },
         tooltip: 'Take picture',
         child: const Icon(Icons.add),
       ),
+      backgroundColor: Colors.white,
     );
   }
 
   Widget getPhotosLists(List<String> photoKeys) {
-    photoKeys = photoKeys ?? ['key'];//TODO change to empty list
+    photoKeys = photoKeys ?? [];//TODO change to empty list
 
     if(photoKeys.length == 0) {
       return Center(
-        child: Text(
-          'Nothing to see here'
-        )
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/empty.png',
+              fit: BoxFit.contain,
+            ),
+            Text(
+              'It\'s a bit lonely here',
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+            RaisedButton(
+              onPressed: () {
+                getNewImage();
+              },
+              child: Text(
+                'Take a photo'
+              ),
+            )
+          ],
+        ),
       );
     }
 
@@ -119,6 +129,22 @@ class _HomePageState extends State<HomePage> {
         return null;
       },
     );
+  }
+
+  Future<void> getNewImage() async {
+    final ImagePicker picker = ImagePicker();
+    final PickedFile pickedFile = await picker.getImage(source: ImageSource.camera);
+
+    if(pickedFile == null) {
+      return;
+    }
+
+    final Uint8List imageData = await pickedFile.readAsBytes();
+    await handleKeep(context, imageData);
+
+    setState(() {
+      photoKeysFuture = database.getPhotoKeys();
+    });
   }
 
   Future<void> handleKeep(BuildContext context, Uint8List image) async {
