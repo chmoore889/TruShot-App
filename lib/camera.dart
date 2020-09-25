@@ -95,7 +95,6 @@ class DisplayPictureScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Display the Picture')),
       body: Image.file(File(imagePath)),
       floatingActionButton: Column(
         children: [
@@ -141,10 +140,12 @@ class DisplayPictureScreen extends StatelessWidget {
     } catch(e) {
       print(e);
       await handleError(context);
+      return;
     }
 
-    if(response.statusCode != 200) {
+    if(response?.statusCode != 200) {
       await handleError(context);
+      return;
     }
     else {
       await database.addPhotoKey(response.body);
@@ -153,8 +154,8 @@ class DisplayPictureScreen extends StatelessWidget {
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
-  Future<void> handleError(BuildContext context) {
-    return showDialog<void>(
+  Future<void> handleError(BuildContext context) async {
+    await showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -171,5 +172,6 @@ class DisplayPictureScreen extends StatelessWidget {
         );
       },
     );
+    Navigator.popUntil(context, (route) => route.isFirst);
   }
 }
