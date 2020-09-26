@@ -1,3 +1,4 @@
+import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:trushot/imageInfo.dart';
@@ -27,38 +28,52 @@ class GridImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        SizedBox.expand(
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) {
-                  return ImageInfoScreen(code);
-                }
-              ));
-            },
-            onLongPress: () async {
-              await Feedback.forLongPress(context);
-              copyToClipboard(code.key, context);
-            },
-            child: Hero(
-              tag: code.key,
-              child: Image(
-                image: code.file,
-                fit: BoxFit.cover,
+    return ClipRRect(
+      borderRadius: BorderRadius.all(Radius.circular(15)),
+      child: Stack(
+        children: [
+          SizedBox.expand(
+            child: InkWell(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) {
+                    return ImageInfoScreen(code);
+                  }
+                ));
+              },
+              onLongPress: () async {
+                await Feedback.forLongPress(context);
+                copyToClipboard(code.key, context);
+              },
+              child: Container(
+                color: Colors.white,
+                padding: EdgeInsets.all(10),
+                child: Hero(
+                  tag: code.key,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: code.file,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-        Align(
-          alignment: Alignment.topRight,
-          child: IconButton(
-            icon: Icon(Icons.close),
-            onPressed: handleDeletion,
+          Align(
+            alignment: Alignment.bottomRight,
+            child: IconButton(
+              iconSize: 20,
+              icon: Icon(FeatherIcons.trash2),
+              onPressed: handleDeletion,
+              color: Colors.red
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

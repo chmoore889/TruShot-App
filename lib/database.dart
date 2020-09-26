@@ -8,10 +8,10 @@ class Database {
     setPrefsInstance();
   }
 
-  /// Sets the SharedPreferences instance unless the 
+  /// Sets the SharedPreferences instance unless the
   /// instance is already non-null
   Future<void> setPrefsInstance() async {
-    if(prefs == null) {
+    if (prefs == null) {
       prefs = await SharedPreferences.getInstance();
     }
   }
@@ -20,10 +20,9 @@ class Database {
     await setPrefsInstance();
 
     List<String> photoKeys;
-    try{
+    try {
       photoKeys = prefs.getStringList(dataKey);
-    }
-    catch(e) {
+    } catch (e) {
       print(e);
     }
 
@@ -37,16 +36,14 @@ class Database {
     await setPrefsInstance();
 
     List<String> toReturn;
-    try{
+    try {
       toReturn = prefs.getStringList(dataKey);
-    }
-    catch(e) {
+    } catch (e) {
       toReturn = List();
       print(e);
     }
     return toReturn;
   }
-
   Future<void> deletePhoto(String key) async {
     await setPrefsInstance();
 
