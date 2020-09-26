@@ -53,10 +53,14 @@ class _HomePageState extends State<HomePage> {
     List<String> photoKeys = (await database.getPhotoKeys()) ?? [];
 
     if(photoKeys.length == 0) {
-      hasButtonAlready = true;
+      setState(() {
+        hasButtonAlready = true;
+      });
     }
     else {
-      hasButtonAlready = false;
+      setState(() {
+        hasButtonAlready = false;
+      });
     }
 
     final String path = (await getApplicationDocumentsDirectory()).path;
