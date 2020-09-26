@@ -11,7 +11,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'TruShot',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: Color(0xFF6C63FF),
+        accentColor: Color(0xFF36344A),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: HomePage(),
