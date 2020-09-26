@@ -230,7 +230,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> handleKeep(BuildContext context, Uint8List image) async {
-    const String url = 'https://sbuhack-2020.dt.r.appspot.com/upload';
+    const String url = 'https://trushot.uk.r.appspot.com/upload';
     
     StreamedResponse response;
     try {
