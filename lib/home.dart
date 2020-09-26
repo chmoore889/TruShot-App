@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget getPhotosLists(List<TileData> photoData) {
-    photoData = photoData ?? [];//TODO Check this
+    photoData = photoData ?? [];
 
     if(photoData.length == 0) {
       return Center(
@@ -206,6 +206,9 @@ class _HomePageState extends State<HomePage> {
     final PickedFile pickedFile = await picker.getImage(source: ImageSource.camera);
 
     if(pickedFile == null) {
+      setState(() {
+        photosFuture = getPhotoData();
+      });
       return;
     }
 
