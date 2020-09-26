@@ -33,13 +33,22 @@ class _HomePageState extends State<HomePage> {
     List<String> photoKeys = (await database.getPhotoKeys()) ?? [];
     final String path = (await getApplicationDocumentsDirectory()).path;
 
+    List<Future<DateTime>> creationsFutures = [];
+    List<File> files = [];
     for(String key in photoKeys) {
       File file = File('$path/$key');
-      toReturn.add(TileData(
-        creationTime: await file.lastModified(),
-        file: file,
-        key: key
-      ));
+      creationsFutures.add(file.lastModified());
+      files.add(file);
+    }
+    List<DateTime> creations = await Future.wait(creationsFutures);
+    for(int x = 0; x < photoKeys.length; x++) {
+      toReturn.add(
+        TileData(
+          key: photoKeys[x],
+          file: files[x],
+          creationTime: creations[x],
+        )
+      );
     }
 
     toReturn.sort((a, b) {
