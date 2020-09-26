@@ -16,6 +16,9 @@ dependencies:
   http: ^0.12.2
   photo_view: ^0.10.2
   path_provider: ^1.6.18
+  google_fonts: ^1.1.0
+  supercharged: ^1.10.0
+  feather_icons_flutter: ^4.7.4
 
 dev_dependencies:
   flutter_test:
