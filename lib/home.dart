@@ -3,12 +3,11 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:trushot/database.dart';
-import 'package:trushot/imageInfo.dart';
+import 'package:trushot/gridImage.dart';
 import 'package:trushot/tileData.dart';
 
 class HomePage extends StatefulWidget {
@@ -153,22 +152,6 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    void copyToClipboard(String input, BuildContext context) {
-      Clipboard.setData(ClipboardData(text: input));
-      Scaffold.of(context).showSnackBar(
-        SnackBar(
-          content: RichText(
-            text: TextSpan(
-              children: <TextSpan>[
-                TextSpan(text: input, style: TextStyle(fontWeight: FontWeight.bold)),
-                TextSpan(text: ' copied to clipboard'),
-              ],
-            ),
-          ),
-        )
-      );
-    }
-
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -178,28 +161,14 @@ class _HomePageState extends State<HomePage> {
       itemCount: photoData.length,
       itemBuilder: (context, index) {
         if(index < photoData.length) {
-          final TileData code = photoData[index];
-
-          return InkWell(
-            onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) {
-                  return ImageInfoScreen(code);
-                }
-              ));
-            },
-            onLongPress: () async {
-              await Feedback.forLongPress(context);
-              copyToClipboard(code.key, context);
-            },
-            child: Hero(
-              tag: code.key,
-              child: Image.file(
-                code.file,
-                fit: BoxFit.cover,
-              ),
-            ),
-          );
+          return GridImage(photoData[index], () async {
+            await database.deletePhoto(photoData[index].key);
+            final String path = (await getApplicationDocumentsDirectory()).path;
+            File('$path/${photoData[index].key}').delete();
+            setState(() {
+              photosFuture = getPhotoData();
+            });
+          });
         }
         return null;
       },

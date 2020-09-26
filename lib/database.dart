@@ -42,4 +42,24 @@ class Database {
     }
     return toReturn;
   }
+
+  Future<void> deletePhoto(String key) async {
+    await setPrefsInstance();
+
+    List<String> photoKeys;
+    try{
+      photoKeys = prefs.getStringList(dataKey);
+    }
+    catch(e) {
+      print(e);
+    }
+
+    photoKeys = photoKeys ?? List<String>();
+
+    if(!photoKeys.remove(key)) {
+      return;
+    }
+
+    await prefs.setStringList(dataKey, photoKeys);
+  }
 }
