@@ -1,3 +1,4 @@
+import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:trushot/imageInfo.dart';
@@ -44,20 +45,31 @@ class GridImage extends StatelessWidget {
                 await Feedback.forLongPress(context);
                 copyToClipboard(code.key, context);
               },
-              child: Hero(
-                tag: code.key,
-                child: Image(
-                  image: code.file,
-                  fit: BoxFit.cover,
+              child: Container(
+                color: Colors.white,
+                padding: EdgeInsets.all(10),
+                child: Hero(
+                  tag: code.key,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: code.file,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
           Align(
-            alignment: Alignment.topRight,
+            alignment: Alignment.bottomRight,
             child: IconButton(
-              icon: Icon(Icons.close),
+              iconSize: 20,
+              icon: Icon(FeatherIcons.trash2),
               onPressed: handleDeletion,
+              color: Colors.red
             ),
           ),
         ],

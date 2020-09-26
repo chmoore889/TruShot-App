@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:http/http.dart';
@@ -24,17 +23,42 @@ class _HomePageState extends State<HomePage> {
   Database database;
   Future<List<TileData>> photosFuture;
 
+  Image emptyState;
+  Future<void> imageFuture;
+
+  bool hasButtonAlready = false;
+
   @override
   void initState() {
     super.initState();
     database = Database();
     photosFuture = getPhotoData();
+
+    emptyState = Image.asset(
+      'assets/polaroid.png',
+      fit: BoxFit.contain,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    imageFuture = precacheImage(emptyState.image, context);
   }
 
   Future<List<TileData>> getPhotoData() async {
     List<TileData> toReturn = List();
 
     List<String> photoKeys = (await database.getPhotoKeys()) ?? [];
+
+    if(photoKeys.length == 0) {
+      hasButtonAlready = true;
+    }
+    else {
+      hasButtonAlready = false;
+    }
+
     final String path = (await getApplicationDocumentsDirectory()).path;
 
     List<Future<DateTime>> creationsFutures = [];
@@ -66,179 +90,208 @@ class _HomePageState extends State<HomePage> {
     return toReturn;
   }
 
+  Widget loading() {
+    return Center(
+      child: OrientationBuilder(builder: (context, orientation) {
+        if (orientation == Orientation.portrait) {
+          double width = MediaQuery.of(context).size.width / 2;
+          return SizedBox(
+            height: width,
+            width: width,
+            child: CircularProgressIndicator(),
+          );
+        }
+        double height = MediaQuery.of(context).size.height / 2;
+        return SizedBox(
+          height: height,
+          width: height,
+          child: CircularProgressIndicator(),
+        );
+      }),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: FutureBuilder<List<TileData>>(
-            future: photosFuture,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return getPhotosLists(snapshot.data);
-              } else if (snapshot.hasError) {
-                print(snapshot.error);
-              }
-              return Center(
-                  child: OrientationBuilder(builder: (context, orientation) {
-                if (orientation == Orientation.portrait) {
-                  double width = MediaQuery.of(context).size.width / 2;
-                  return SizedBox(
-                    height: width,
-                    width: width,
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                double height = MediaQuery.of(context).size.height / 2;
-                return SizedBox(
-                  height: height,
-                  width: height,
-                  child: CircularProgressIndicator(),
-                );
-              }));
-            }),
+          future: photosFuture,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return getPhotosLists(snapshot.data);
+            } else if (snapshot.hasError) {
+              print(snapshot.error);
+            }
+            return loading();
+          }
+        ),
       ),
       backgroundColor: backgroundColor,
+      floatingActionButton: !hasButtonAlready ? FloatingActionButton(
+        onPressed: () {
+          getNewImage();
+        },
+        tooltip: 'Take picture',
+        child: const Icon(FeatherIcons.camera),
+        backgroundColor: const Color(0xFF6C63FF),
+      ) : null,
     );
   }
 
   Widget getPhotosLists(List<TileData> photoData) {
     photoData = photoData ?? [];
 
+    Widget toReturn;
+
     if (photoData.length == 0) {
-      return Center(
-        child: OrientationBuilder(builder: (context, orientation) {
-          Axis mainDirection;
-          if (orientation == Orientation.portrait) {
-            mainDirection = Axis.vertical;
-          } else {
-            mainDirection = Axis.horizontal;
+      toReturn = FutureBuilder(
+        future: imageFuture,
+        builder: (context, snapshot) {
+          if(snapshot.connectionState != ConnectionState.done) {
+            return loading();
           }
-          return Flex(
-            direction: mainDirection,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (mainDirection == Axis.vertical)
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 10, bottom: 5),
-                        child: Icon(
-                          FeatherIcons.aperture,
-                          size: 32,
-                          color: textColor,
-                        ),
-                      ),
-                      Text(
-                        "TruShot",
-                        style: GoogleFonts.nunito(
-                            color: textColor,
-                            fontSize: 32.0,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-              Container(
-                alignment: Alignment.center,
-                child: Image.asset(
-                  'assets/polaroid.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: mainDirection == Axis.vertical
-                      ? MainAxisAlignment.start
-                      : MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
+          return Center(
+            child: OrientationBuilder(builder: (context, orientation) {
+              Axis mainDirection;
+              if (orientation == Orientation.portrait) {
+                mainDirection = Axis.vertical;
+              } else {
+                mainDirection = Axis.horizontal;
+              }
+              return Flex(
+                direction: mainDirection,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (mainDirection == Axis.vertical)
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0, vertical: 15.0),
-                      child: Text('It\'s a bit lonely here',
-                          style: GoogleFonts.nunito(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10, bottom: 5),
+                            child: Icon(
+                              FeatherIcons.aperture,
+                              size: 32,
                               color: textColor,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w400)),
-                    ),
-                    GestureDetector(
-                      onTap: () => getNewImage(),
-                      child: Container(
-                        width: mainDirection == Axis.vertical
-                            ? MediaQuery.of(context).size.width * .5
-                            : MediaQuery.of(context).size.width * .3,
-                        padding:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                        decoration: BoxDecoration(
-                            color: accentColor,
-                            borderRadius: BorderRadius.circular(15.0),
-                            boxShadow: [
-                              BoxShadow(
-                                  offset: Offset(0, 0),
-                                  blurRadius: 10.0,
-                                  color: accentColor.withOpacity(0.70))
-                            ]),
-                        child: Center(
-                          child: Text(
-                            "Take a picture",
-                            textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Text(
+                            "TruShot",
                             style: GoogleFonts.nunito(
-                                color: textColor,
-                                fontSize: 20.0,
-                                fontWeight: FontWeight.w400),
+                              color: textColor,
+                              fontSize: 32.0,
+                              fontWeight: FontWeight.bold
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Container(
+                    alignment: Alignment.center,
+                    child: emptyState,
+                  ),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: mainDirection == Axis.vertical
+                          ? MainAxisAlignment.start
+                          : MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 15.0),
+                          child: Text('It\'s a bit lonely here',
+                              style: GoogleFonts.nunito(
+                                  color: textColor,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w400)),
+                        ),
+                        GestureDetector(
+                          onTap: () => getNewImage(),
+                          child: Container(
+                            width: mainDirection == Axis.vertical
+                                ? MediaQuery.of(context).size.width * .5
+                                : MediaQuery.of(context).size.width * .3,
+                            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                            decoration: BoxDecoration(
+                              color: accentColor,
+                              borderRadius: BorderRadius.circular(15.0),
+                              boxShadow: [
+                                BoxShadow(
+                                    offset: Offset(0, 0),
+                                    blurRadius: 10.0,
+                                    color: accentColor.withOpacity(0.70))
+                              ]
+                            ),
+                            child: Center(
+                              child: Text(
+                                "Take a picture",
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.nunito(
+                                  color: textColor,
+                                  fontSize: 20.0,
+                                  fontWeight: FontWeight.w400
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ],
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }),
           );
-        }),
+        }
       );
     }
-    
-    const int columnCount = 2;
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 4.0,
-        vertical: 2.0,
-      ),
-      child: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columnCount,
-          mainAxisSpacing: 4.0,
-          crossAxisSpacing: 4.0,
+    else {
+      const int columnCount = 2;
+      toReturn = Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8.0,
+          vertical: 2.0,
         ),
-        itemCount: photoData.length,
-        itemBuilder: (context, index) {
-          if(index < photoData.length) {
-            return AnimationConfiguration.staggeredGrid(
-              position: index,
-              duration: const Duration(milliseconds: 375),
-              columnCount: columnCount,
-              child: ScaleAnimation(
-                child: FadeInAnimation(
-                  child: GridImage(photoData[index], () async {
-                    await database.deletePhoto(photoData[index].key);
-                    final String path = (await getApplicationDocumentsDirectory()).path;
-                    File('$path/${photoData[index].key}').delete();
-                    setState(() {
-                      photosFuture = getPhotoData();
-                    });
-                  }),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columnCount,
+            mainAxisSpacing: 8.0,
+            crossAxisSpacing: 8.0,
+          ),
+          itemCount: photoData.length,
+          itemBuilder: (context, index) {
+            if(index < photoData.length) {
+              return AnimationConfiguration.staggeredGrid(
+                position: index,
+                duration: const Duration(milliseconds: 375),
+                columnCount: columnCount,
+                child: ScaleAnimation(
+                  child: FadeInAnimation(
+                    child: GridImage(photoData[index], () async {
+                      await database.deletePhoto(photoData[index].key);
+                      final String path = (await getApplicationDocumentsDirectory()).path;
+                      File('$path/${photoData[index].key}').delete();
+                      setState(() {
+                        photosFuture = getPhotoData();
+                      });
+                    }),
+                  ),
                 ),
-              ),
-            );
-          }
-          return null;
-        },
-      ),
+              );
+            }
+            return null;
+          },
+        ),
+      );
+    }
+
+    return AnimatedSwitcher(
+      child: toReturn,
+      duration: const Duration(milliseconds: 250),
     );
   }
 
