@@ -160,35 +160,41 @@ class _HomePageState extends State<HomePage> {
     }
 
     const int columnCount = 2;
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columnCount,
-        mainAxisSpacing: 2.0,
-        crossAxisSpacing: 2.0,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 4.0,
+        vertical: 2.0,
       ),
-      itemCount: photoData.length,
-      itemBuilder: (context, index) {
-        if(index < photoData.length) {
-          return AnimationConfiguration.staggeredGrid(
-            position: index,
-            duration: const Duration(milliseconds: 375),
-            columnCount: columnCount,
-            child: ScaleAnimation(
-              child: FadeInAnimation(
-                child: GridImage(photoData[index], () async {
-                  await database.deletePhoto(photoData[index].key);
-                  final String path = (await getApplicationDocumentsDirectory()).path;
-                  File('$path/${photoData[index].key}').delete();
-                  setState(() {
-                    photosFuture = getPhotoData();
-                  });
-                }),
+      child: GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columnCount,
+          mainAxisSpacing: 4.0,
+          crossAxisSpacing: 4.0,
+        ),
+        itemCount: photoData.length,
+        itemBuilder: (context, index) {
+          if(index < photoData.length) {
+            return AnimationConfiguration.staggeredGrid(
+              position: index,
+              duration: const Duration(milliseconds: 375),
+              columnCount: columnCount,
+              child: ScaleAnimation(
+                child: FadeInAnimation(
+                  child: GridImage(photoData[index], () async {
+                    await database.deletePhoto(photoData[index].key);
+                    final String path = (await getApplicationDocumentsDirectory()).path;
+                    File('$path/${photoData[index].key}').delete();
+                    setState(() {
+                      photosFuture = getPhotoData();
+                    });
+                  }),
+                ),
               ),
-            ),
-          );
-        }
-        return null;
-      },
+            );
+          }
+          return null;
+        },
+      ),
     );
   }
 
