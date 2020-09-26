@@ -43,5 +43,9 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Taking pictures to send to server and store</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Retrieving pictures to send to server and store</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Taking video with <audio src=""></audio></string>
 </dict>
 </plist>
