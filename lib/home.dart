@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -152,23 +153,33 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    const int columnCount = 2;
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+        crossAxisCount: columnCount,
         mainAxisSpacing: 2.0,
         crossAxisSpacing: 2.0,
       ),
       itemCount: photoData.length,
       itemBuilder: (context, index) {
         if(index < photoData.length) {
-          return GridImage(photoData[index], () async {
-            await database.deletePhoto(photoData[index].key);
-            final String path = (await getApplicationDocumentsDirectory()).path;
-            File('$path/${photoData[index].key}').delete();
-            setState(() {
-              photosFuture = getPhotoData();
-            });
-          });
+          return AnimationConfiguration.staggeredGrid(
+            position: index,
+            duration: const Duration(milliseconds: 375),
+            columnCount: columnCount,
+            child: ScaleAnimation(
+              child: FadeInAnimation(
+                child: GridImage(photoData[index], () async {
+                  await database.deletePhoto(photoData[index].key);
+                  final String path = (await getApplicationDocumentsDirectory()).path;
+                  File('$path/${photoData[index].key}').delete();
+                  setState(() {
+                    photosFuture = getPhotoData();
+                  });
+                }),
+              ),
+            ),
+          );
         }
         return null;
       },

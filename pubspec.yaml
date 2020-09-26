@@ -16,6 +16,7 @@ dependencies:
   http: ^0.12.2
   photo_view: ^0.10.2
   path_provider: ^1.6.18
+  flutter_staggered_animations: ^0.1.2
 
 dev_dependencies:
   flutter_test:
