@@ -44,8 +44,8 @@ class GridImage extends StatelessWidget {
             },
             child: Hero(
               tag: code.key,
-              child: Image.file(
-                code.file,
+              child: Image(
+                image: code.file,
                 fit: BoxFit.cover,
               ),
             ),

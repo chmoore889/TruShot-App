@@ -4,6 +4,10 @@ class Database {
   SharedPreferences prefs;
   static const String dataKey = 'photoKeys';
 
+  Database() {
+    setPrefsInstance();
+  }
+
   /// Sets the SharedPreferences instance unless the 
   /// instance is already non-null
   Future<void> setPrefsInstance() async {

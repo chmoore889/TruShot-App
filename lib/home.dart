@@ -34,11 +34,15 @@ class _HomePageState extends State<HomePage> {
     final String path = (await getApplicationDocumentsDirectory()).path;
 
     List<Future<DateTime>> creationsFutures = [];
-    List<File> files = [];
+    List<Future<void>> imageLoadedFutures = [];
+    List<FileImage> files = [];
     for(String key in photoKeys) {
       File file = File('$path/$key');
       creationsFutures.add(file.lastModified());
-      files.add(file);
+
+      FileImage image = FileImage(file);
+      imageLoadedFutures.add(precacheImage(image, context));
+      files.add(image);
     }
     List<DateTime> creations = await Future.wait(creationsFutures);
     for(int x = 0; x < photoKeys.length; x++) {
@@ -54,6 +58,8 @@ class _HomePageState extends State<HomePage> {
     toReturn.sort((a, b) {
       return b.creationTime.compareTo(a.creationTime);
     });
+
+    await Future.wait(imageLoadedFutures);
 
     return toReturn;
   }
