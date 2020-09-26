@@ -16,8 +16,8 @@ class ImageInfoScreen extends StatelessWidget {
               children: [
                 Hero(
                   tag: data.key,
-                  child: Image.file(
-                    data.file,
+                  child: Image(
+                    image: data.file,
                     fit: BoxFit.contain,
                   ),
                 ),

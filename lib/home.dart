@@ -6,12 +6,13 @@ import 'package:feather_icons_flutter/feather_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:trushot/constants.dart';
 import 'package:trushot/database.dart';
-import 'package:trushot/imageInfo.dart';
+import 'package:trushot/gridImage.dart';
 import 'package:trushot/tileData.dart';
 
 class HomePage extends StatefulWidget {
@@ -37,11 +38,15 @@ class _HomePageState extends State<HomePage> {
     final String path = (await getApplicationDocumentsDirectory()).path;
 
     List<Future<DateTime>> creationsFutures = [];
-    List<File> files = [];
-    for (String key in photoKeys) {
+    List<Future<void>> imageLoadedFutures = [];
+    List<FileImage> files = [];
+    for(String key in photoKeys) {
       File file = File('$path/$key');
       creationsFutures.add(file.lastModified());
-      files.add(file);
+
+      FileImage image = FileImage(file);
+      imageLoadedFutures.add(precacheImage(image, context));
+      files.add(image);
     }
     List<DateTime> creations = await Future.wait(creationsFutures);
     for (int x = 0; x < photoKeys.length; x++) {
@@ -55,6 +60,8 @@ class _HomePageState extends State<HomePage> {
     toReturn.sort((a, b) {
       return b.creationTime.compareTo(a.creationTime);
     });
+
+    await Future.wait(imageLoadedFutures);
 
     return toReturn;
   }
@@ -195,54 +202,43 @@ class _HomePageState extends State<HomePage> {
         }),
       );
     }
-
-    void copyToClipboard(String input, BuildContext context) {
-      Clipboard.setData(ClipboardData(text: input));
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: RichText(
-          text: TextSpan(
-            children: <TextSpan>[
-              TextSpan(
-                  text: input, style: TextStyle(fontWeight: FontWeight.bold)),
-              TextSpan(text: ' copied to clipboard'),
-            ],
-          ),
-        ),
-      ));
-    }
-
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 2.0,
-        crossAxisSpacing: 2.0,
+    
+    const int columnCount = 2;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 4.0,
+        vertical: 2.0,
       ),
-      itemCount: photoData.length,
-      itemBuilder: (context, index) {
-        if (index < photoData.length) {
-          final TileData code = photoData[index];
-
-          return InkWell(
-            onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                return ImageInfoScreen(code);
-              }));
-            },
-            onLongPress: () async {
-              await Feedback.forLongPress(context);
-              copyToClipboard(code.key, context);
-            },
-            child: Hero(
-              tag: code.key,
-              child: Image.file(
-                code.file,
-                fit: BoxFit.cover,
+      child: GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columnCount,
+          mainAxisSpacing: 4.0,
+          crossAxisSpacing: 4.0,
+        ),
+        itemCount: photoData.length,
+        itemBuilder: (context, index) {
+          if(index < photoData.length) {
+            return AnimationConfiguration.staggeredGrid(
+              position: index,
+              duration: const Duration(milliseconds: 375),
+              columnCount: columnCount,
+              child: ScaleAnimation(
+                child: FadeInAnimation(
+                  child: GridImage(photoData[index], () async {
+                    await database.deletePhoto(photoData[index].key);
+                    final String path = (await getApplicationDocumentsDirectory()).path;
+                    File('$path/${photoData[index].key}').delete();
+                    setState(() {
+                      photosFuture = getPhotoData();
+                    });
+                  }),
+                ),
               ),
-            ),
-          );
-        }
-        return null;
-      },
+            );
+          }
+          return null;
+        },
+      ),
     );
   }
 

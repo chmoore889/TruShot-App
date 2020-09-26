@@ -19,6 +19,7 @@ dependencies:
   google_fonts: ^1.1.0
   supercharged: ^1.10.0
   feather_icons_flutter: ^4.7.4
+  flutter_staggered_animations: ^0.1.2
 
 dev_dependencies:
   flutter_test:
